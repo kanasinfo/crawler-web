@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/task
+    	http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<!-- Root Context: shared resources visible to all other web components -->
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:*.properties</value>
+				<value>/WEB-INF/spring/*.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- data source -->
+	<bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close">
+		<property name="driverClass" value="${driverClass}" />
+		<property name="jdbcUrl" value="${jdbcUrl}" />
+		<property name="username" value="${username}"/>
+		<property name="password" value="${password}"/>
+		<property name="idleConnectionTestPeriodInMinutes" value="${bonecp.idleConnectionTestPeriodInMinutes}"/>
+		<property name="idleMaxAgeInMinutes" value="${bonecp.idleMaxAgeInMinutes}"/>
+		<property name="maxConnectionsPerPartition" value="${bonecp.maxConnectionsPerPartition}"/>
+		<property name="minConnectionsPerPartition" value="${bonecp.minConnectionsPerPartition}"/>
+		<property name="partitionCount" value="${bonecp.partitionCount}"/>
+		<property name="acquireIncrement" value="${bonecp.acquireIncrement}"/>
+		<property name="statementsCacheSize" value="${bonecp.statementsCacheSize}"/>
+	</bean>
+
+	<!-- spring JPA -->
+	<bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
+	<bean id="persistenceUnitManager" class="org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager">
+		<property name="persistenceXmlLocations">
+			<list>
+				<value>classpath*:META-INF/persistence.xml</value>
+			</list>
+		</property>
+		<property name="dataSources">
+			<map>
+				<entry key="localDataSource" value-ref="dataSource"/>
+			</map>
+		</property>
+		<!-- if no datasource is specified, use this one -->
+		<property name="defaultDataSource" ref="dataSource"/>
+	</bean>
+	
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="persistenceUnitManager" ref="persistenceUnitManager"/>
+		<!-- 
+		<property name="dataSource" ref="dataSource" />
+		<property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml" />
+		<property name="persistenceUnitName" value="default" />
+		 -->
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="database" value="POSTGRESQL"/>  
+				<property name="showSql" value="false" /> 
+			</bean>  
+		</property>  
+	</bean>
+	
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory" />
+    </bean>
+    <tx:annotation-driven transaction-manager="transactionManager" />
+	
+	<!-- annotation config for all beans -->
+	<context:annotation-config/>
+
+	<context:component-scan base-package="com.ch.**" />
+
+	<bean id="restTemplate" class="org.springframework.web.client.RestTemplate">
+		<property name="messageConverters">
+			<list>
+				<!-- 设置返回字符串编码 -->
+				<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+					<property name = "supportedMediaTypes">
+						<list>
+							<value>text/html;charset=UTF-8</value>
+						</list>
+					</property>
+				</bean>
+				<!-- json转换器 -->
+				<bean id="jsonHttpMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+					<property name="supportedMediaTypes">
+						<list>
+							<value>application/json;charset=UTF-8</value>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+	<!--开始@Async 异步方法支持-->
+	<task:executor id="executor" pool-size="5"  />
+	<task:annotation-driven executor="executor"/>
+
+</beans>

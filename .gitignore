@@ -1,0 +1,7 @@
+.idea
+*.iml
+bin
+target
+crawler.log
+src/test/
+logs
