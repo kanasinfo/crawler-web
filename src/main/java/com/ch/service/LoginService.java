@@ -5,12 +5,14 @@ import com.ch.utils.PropUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
 /**
  * Created by Devid on 2016/10/25.
  */
+@Service
 public class LoginService {
     private static final Logger logger = Logger.getLogger(LoginService.class);
 

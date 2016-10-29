@@ -13,9 +13,6 @@
     <jsp:invoke fragment="css"/>
 </head>
 <body>
-<c:if test="${empty(noHead) || !noHead}">
-    <common:header/>
-</c:if>
 <jsp:invoke fragment="main"/>
 <common:js></common:js>
 <jsp:invoke fragment="js"/>

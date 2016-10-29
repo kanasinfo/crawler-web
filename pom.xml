@@ -10,7 +10,6 @@
         <shiro.version>1.2.4</shiro.version>
         <poi.version>3.14</poi.version>
         <spring.version>4.2.1.RELEASE</spring.version>
-        <sc-finance-sdk.version>0.1.40</sc-finance-sdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <build>
@@ -41,7 +40,7 @@
                 <configuration>
                     <connectors>
                         <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
-                            <port>8081</port>
+                            <port>8888</port>
                             <maxIdleTime>60000</maxIdleTime>
                         </connector>
                     </connectors>
@@ -55,7 +54,7 @@
                         </systemProperty>
                     </systemProperties>
                     <stopKey>app</stopKey>
-                    <stopPort>7533</stopPort>
+                    <stopPort>7777</stopPort>
                 </configuration>
             </plugin>
         </plugins>

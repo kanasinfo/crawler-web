@@ -19,7 +19,7 @@ public final class FetchUtils {
         Document doc = Jsoup.connect(url)
                 .cookies(RequestParams.getInstance().getCookies())
                 .get();
-        logger.info("response doc: " + new Gson().toJson(doc));
+        logger.info("response doc: " + doc);
         return doc;
     }
 }
