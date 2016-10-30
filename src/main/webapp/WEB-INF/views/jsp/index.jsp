@@ -1,13 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@include file="/WEB-INF/taglibs.jsp" %>
-<layout:template>
+<layout:template >
     <jsp:attribute name="main">
         <div class="container">
             <div class="row">
-                <div class="col-md-3"></div>
                 <div class="col-md-6">
-                    <h1>设置参数</h1>
                     <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">设置抓取任务参数</h3>
+                        </div>
                         <div class="panel-body">
                             <form role="form" action="/fetch" method="post">
                                 <div class="form-group">
@@ -29,6 +30,18 @@
                                 </div>
                                 <button type="submit" class="btn btn-primary">启动</button>
                             </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">重试未完成任务</h3>
+                        </div>
+                        <div class="panel-body">
+                            <p>未完成任务数量：${count}</p>
+                            <p><a href="/fetchUnsuccess" class="btn btn-primary">重试</a></p>
+
                         </div>
                     </div>
                 </div>

@@ -21,7 +21,7 @@ public class InitComponent {
     public void login() {
         try {
             logger.info("开始登录...");
-//            loginService.login();
+            loginService.login();
             logger.info("登录成功!");
         } catch (Exception e) {
             e.printStackTrace();

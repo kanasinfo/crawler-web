@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -30,6 +31,8 @@ public class Resource {
     private String content;
     @Column(name = "is_fetch_success")
     private boolean isFetchSuccess;
+    @Column(name = "created_time")
+    private Date createdTime = new Date();
 
     public Resource() {
         this.id = StringKit.generateUUID();
@@ -89,6 +92,14 @@ public class Resource {
 
     public void setFetchSuccess(boolean fetchSuccess) {
         isFetchSuccess = fetchSuccess;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
     }
 
     @Override
