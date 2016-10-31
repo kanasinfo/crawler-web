@@ -17,7 +17,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="start">开始条目序号</label>
-                                    <input type="number" class="form-control" id="start" name="start" placeholder="从第几条开始，不小于1">
+                                    <input type="number" class="form-control" id="start" name="start" placeholder="不小于0">
                                 </div>
                                 <%--<div class="form-group">
                                     <label for="pageSize">一页多少条</label>

@@ -98,7 +98,7 @@ public class FetchService {
         @Override
         public void run() {
             String url = PropUtils.getProp("url.domain") + resource.getUrl();
-//            String url = "https://gefangshuai.github.io/2016/10/25/linux-server-operation/";
+//            String url = "https://gefangshuai.github.io/2016/10/30/linux-server-operation/";
             try {
                 Document document = FetchUtils.getByUrl(url);
                 resource.setContent(document.outerHtml());
