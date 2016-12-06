@@ -23,6 +23,7 @@ public final class FetchUtils {
     private static final Logger logger = Logger.getLogger(FetchUtils.class);
     
     private static Connection getJsoupConnection(String url){
+        logger.info("jsoup url: " + url);
         Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 1080));
         Connection connection = Jsoup.connect(url).proxy(proxy);
         connection.timeout(10000);

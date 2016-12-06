@@ -86,12 +86,13 @@ public class FetchTwitterService {
         String userId = element.select("div.permalink-header>a.js-user-profile-link").attr("data-user-id");
         String twitterContent = element.select("div.permalink-tweet-container").select("div.js-tweet-text-container").text();
         String pushTime = element.select("div.permalink-tweet-container").select("div.client-and-actions > span.metadata > span").text();
-        String username = element.select("strong.fullname").text();
+        String username = element.select("div.permalink-header>a.js-user-profile-link>strong.fullname").text();
         
         tweet.setContent(twitterContent);
         tweet.setPushTime(pushTime);
         tweet.getUser().setUserId(userId);
         tweet.getUser().setUsername(username);
+        tweet.setUserId(userId);
         logger.info("获取Main Tweet: " + GsonUtils.getGson().toJson(tweet));
 
         fetchReTweetUsers(tweet.getId());
@@ -203,7 +204,6 @@ public class FetchTwitterService {
             getMainComment(e, tweet);
         }
 
-        // TODO 获取异步的数据
         if (StringUtils.isNotBlank(minPosition)) {
             try {
                 String moreJson = FetchUtils.httpGet(String.format(MORE_CMT_URL, tweet.getUser().getAccount(), tweet.getId(), minPosition));

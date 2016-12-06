@@ -3,6 +3,7 @@ package com.ch.utils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.aspectj.weaver.ast.Or;
 
 import java.io.UnsupportedEncodingException;
 import java.text.NumberFormat;
@@ -48,12 +49,19 @@ public final class StringKit {
      * 转换成int类型
      */
     public static Integer toInt(Object object) {
-        String value = toString(object, "0");
+        return toInt(object, "-1");
+    }
+
+    /**
+     * 转换成int类型
+     */
+    public static Integer toInt(Object object, String defalut) {
+        String value = toString(object, defalut);
         String str = StringUtils.contains(value, ".") ? value.substring(0, value.indexOf(".")) : value;
         int intgeo = Integer.parseInt(str);
         return intgeo;
     }
-
+    
     /**
      * 转换成double类型
      * @param object

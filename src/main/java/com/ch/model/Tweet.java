@@ -1,6 +1,7 @@
 package com.ch.model;
 
 import javax.persistence.*;
+import java.util.Date;
 
 /**
  * 推文主内容
@@ -27,6 +28,9 @@ public class Tweet {
     private String hashTag;
     @Column(name = "user_id")
     private String userId;
+    
+    @Column(name = "fetch_time")
+    private Date fetchTime = new Date();
     
     @Transient
     private User user;
@@ -99,5 +103,13 @@ public class Tweet {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Date getFetchTime() {
+        return fetchTime;
+    }
+
+    public void setFetchTime(Date fetchTime) {
+        this.fetchTime = fetchTime;
     }
 }
