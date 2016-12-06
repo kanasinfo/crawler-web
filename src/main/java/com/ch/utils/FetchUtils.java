@@ -1,25 +1,53 @@
 package com.ch.utils;
 
-import com.ch.core.RequestParams;
-import com.google.gson.Gson;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 
 /**
  * Created by Devid on 2016/10/25.
  */
 public final class FetchUtils {
     private static final Logger logger = Logger.getLogger(FetchUtils.class);
-
+    
+    private static Connection getJsoupConnection(String url){
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 1080));
+        Connection connection = Jsoup.connect(url).proxy(proxy);
+        connection.timeout(10000);
+        return connection;
+    }
+    
+    private static CloseableHttpResponse getHttpGet(String url) throws IOException {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpGet get = new HttpGet(url);
+        HttpHost proxy = new HttpHost("127.0.0.1", 1080);
+        RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
+        get.setConfig(config);
+        CloseableHttpResponse response = httpclient.execute(get);
+        return response;
+    }
+    
     public static Document getByUrl(String url) throws IOException {
         logger.info("request url: " + url);
-        Document doc = Jsoup.connect(url)
-                .cookies(RequestParams.getInstance().getCookies())
-                .get();
-        logger.info("response doc: " + doc);
-        return doc;
+        Document document = getJsoupConnection(url).ignoreContentType(true).get();
+        return document;
     }
+
+    public static String httpGet(String url) throws IOException {
+        logger.info("http get: " + url);
+        return IOUtils.toString(getHttpGet(url).getEntity().getContent(), "utf-8");
+    }
+
 }
