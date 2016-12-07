@@ -13,6 +13,7 @@ import com.ch.utils.StringKit;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -85,11 +87,11 @@ public class FetchTwitterService {
     public void fetchMain(Element element, Tweet tweet) {
         String userId = element.select("div.permalink-header>a.js-user-profile-link").attr("data-user-id");
         String twitterContent = element.select("div.permalink-tweet-container").select("div.js-tweet-text-container").text();
-        String pushTime = element.select("div.permalink-tweet-container").select("div.client-and-actions > span.metadata > span").text();
+        String pushTime = element.select("div.permalink-tweet-container").select("div.permalink-header").select("span._timestamp.js-short-timestamp").attr("data-time-ms");
         String username = element.select("div.permalink-header>a.js-user-profile-link>strong.fullname").text();
-        
+
         tweet.setContent(twitterContent);
-        tweet.setPushTime(pushTime);
+        tweet.setPushTime(DateFormatUtils.format(new Date(StringKit.toLong(pushTime)), "yyyy-MM-dd HH:mm:ss"));
         tweet.getUser().setUserId(userId);
         tweet.getUser().setUsername(username);
         tweet.setUserId(userId);
@@ -162,7 +164,7 @@ public class FetchTwitterService {
                 String account = element.select("a.js-user-profile-link").attr("href").replace("/", "");
                 String content = element.select("p.bio").text();
                 String reTweetId = element.attr("data-item-id");
-                
+
                 User user = new User();
                 user.setUserId(userId);
                 user.setAccount(account);
@@ -271,7 +273,7 @@ public class FetchTwitterService {
         user.setUsername(username);
         user.setAccount(account);
         saveUser(user);
-        
+
         Tweet tweet = new Tweet();
         tweet.setUser(user);
         tweet.setUserId(id);
@@ -282,7 +284,7 @@ public class FetchTwitterService {
         tweet.setPushTime(DateFormatUtils.format(date, "yyyy-MM-dd HH:mm:ss"));
         // 获取评论喜欢
         tweetRepository.save(tweet);
-        
+
         fetchLikeUsers(cmtId);
     }
 }

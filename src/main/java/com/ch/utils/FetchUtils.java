@@ -26,6 +26,7 @@ public final class FetchUtils {
         logger.info("jsoup url: " + url);
         Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 1080));
         Connection connection = Jsoup.connect(url).proxy(proxy);
+        connection.header("Accept-Language", "us-EN,zh;q=0.8");
         connection.timeout(10000);
         return connection;
     }

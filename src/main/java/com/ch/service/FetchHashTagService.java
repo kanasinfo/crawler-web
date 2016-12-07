@@ -49,13 +49,14 @@ public class FetchHashTagService {
         tag = URLEncoder.encode("#" + tag, "utf-8");
 
         String url = String.format("http://twitter.com/hashtag/%s", URLEncoder.encode(tag, "utf-8"));
-        hashTag.setTag(tag);
+        hashTag.setTag(URLDecoder.decode(tag, "utf-8"));
         hashTag.setUrl(url);
 
         hashTagRepository.save(hashTag);
 
-        Element element = FetchUtils.getByUrl(url);
+        Element element = Jsoup.parse(FetchUtils.httpGet(url));
         fetchHashTag(tag, element, page);
+        logger.info("获取完成！");
         return hashTag;
     }
 
@@ -78,7 +79,7 @@ public class FetchHashTagService {
     @Transactional
     private int fetchList(Element rootEle, String tag, Integer page) throws UnsupportedEncodingException {
         logger.info("current page: " + page);
-        ListIterator<Element> list = rootEle.select("li.js-stream-item.stream-item.stream-item").listIterator();
+        ListIterator<Element> list = rootEle.select("li.js-stream-item").listIterator();
         while (list.hasNext() && (page > 0 || page < 0)) {
             Tweet tweet = new Tweet();
             tweet.setType(Tweet.Type.HASH_TAG);
@@ -91,6 +92,7 @@ public class FetchHashTagService {
             String userId = twitterEle.select("div.stream-item-header>a.js-user-profile-link").attr("data-user-id");
             String account = twitterEle.select("div.stream-item-header>a.js-user-profile-link").attr("href").replace("/", "");
             String content = twitterEle.select("div.js-tweet-text-container>p.TweetTextSize.js-tweet-text.tweet-text").text();
+            logger.info("content: " + content);
             String cmtTimeStr = twitterEle.select("span._timestamp").attr("data-time-ms");
             Date date = new Date(StringKit.toLong(cmtTimeStr));
 
