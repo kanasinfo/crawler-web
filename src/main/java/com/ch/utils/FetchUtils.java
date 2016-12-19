@@ -24,8 +24,8 @@ public final class FetchUtils {
     
     private static Connection getJsoupConnection(String url){
         logger.info("jsoup url: " + url);
-        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 1080));
-        Connection connection = Jsoup.connect(url).proxy(proxy);
+        // Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 1080));
+        Connection connection = Jsoup.connect(url);//.proxy(proxy);
         connection.header("Accept-Language", "us-EN,zh;q=0.8");
         connection.timeout(10000);
         return connection;
@@ -34,8 +34,8 @@ public final class FetchUtils {
     private static CloseableHttpResponse getHttpGet(String url) throws IOException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpGet get = new HttpGet(url);
-        HttpHost proxy = new HttpHost("127.0.0.1", 1080);
-        RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
+        //HttpHost proxy = new HttpHost("127.0.0.1", 1080);
+        RequestConfig config = RequestConfig.custom().build();//.setProxy(proxy).build();
         get.setConfig(config);
         CloseableHttpResponse response = httpclient.execute(get);
         return response;
