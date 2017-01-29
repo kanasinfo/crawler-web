@@ -24,19 +24,55 @@
 	</bean>
 	
 	<!-- data source -->
-	<bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close">
-		<property name="driverClass" value="${driverClass}" />
-		<property name="jdbcUrl" value="${jdbcUrl}" />
-		<property name="username" value="${username}"/>
-		<property name="password" value="${password}"/>
-		<property name="idleConnectionTestPeriodInMinutes" value="${bonecp.idleConnectionTestPeriodInMinutes}"/>
-		<property name="idleMaxAgeInMinutes" value="${bonecp.idleMaxAgeInMinutes}"/>
-		<property name="maxConnectionsPerPartition" value="${bonecp.maxConnectionsPerPartition}"/>
-		<property name="minConnectionsPerPartition" value="${bonecp.minConnectionsPerPartition}"/>
-		<property name="partitionCount" value="${bonecp.partitionCount}"/>
-		<property name="acquireIncrement" value="${bonecp.acquireIncrement}"/>
-		<property name="statementsCacheSize" value="${bonecp.statementsCacheSize}"/>
-	</bean>
+	<!--<bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close">-->
+		<!--<property name="driverClass" value="${driverClass}" />-->
+		<!--<property name="jdbcUrl" value="${jdbcUrl}" />-->
+		<!--<property name="username" value="${username}"/>-->
+		<!--<property name="password" value="${password}"/>-->
+		<!--<property name="idleConnectionTestPeriodInMinutes" value="${bonecp.idleConnectionTestPeriodInMinutes}"/>-->
+		<!--<property name="idleMaxAgeInMinutes" value="${bonecp.idleMaxAgeInMinutes}"/>-->
+		<!--<property name="maxConnectionsPerPartition" value="${bonecp.maxConnectionsPerPartition}"/>-->
+		<!--<property name="minConnectionsPerPartition" value="${bonecp.minConnectionsPerPartition}"/>-->
+		<!--<property name="partitionCount" value="${bonecp.partitionCount}"/>-->
+		<!--<property name="acquireIncrement" value="${bonecp.acquireIncrement}"/>-->
+		<!--<property name="statementsCacheSize" value="${bonecp.statementsCacheSize}"/>-->
+	<!--</bean>-->
+
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <!-- 数据库用户名称 -->
+        <property name="username" value="${username}"/>
+        <!-- 数据库密码 -->
+        <property name="password" value="${password}"/>
+        <!-- 驱动名称 -->
+        <property name="driverClassName" value="${driverClass}" />
+        <!-- JDBC连接串 -->
+        <property name="url" value="${jdbcUrl}" />
+        <!-- 连接池最大使用连接数量 -->
+        <property name="maxActive" value="${jdbc.maxActive}" />
+        <!-- 初始化大小 -->
+        <property name="initialSize" value="${jdbc.initialSize}" />
+        <!-- 获取连接最大等待时间 -->
+        <property name="maxWait" value="${jdbc.maxWait}" />
+        <!-- 连接池最小空闲 -->
+        <property name="minIdle" value="${jdbc.minIdle}" />
+        <!-- 逐出连接的检测时间间隔 -->
+        <property name="timeBetweenEvictionRunsMillis" value="${jdbc.timeBetweenEvictionRunsMillis}" />
+        <!-- 最小逐出时间 -->
+        <property name="minEvictableIdleTimeMillis" value="${jdbc.minEvictableIdleTimeMillis}" />
+        <!-- 测试有效用的SQL Query -->
+        <property name="validationQuery" value="SELECT 'x'" />
+        <!-- 连接空闲时测试是否有效 -->
+        <property name="testWhileIdle" value="true" />
+        <!-- 获取连接时测试是否有效 -->
+        <property name="testOnBorrow" value="false" />
+        <!-- 归还连接时是否测试有效 -->
+        <property name="testOnReturn" value="false" />
+        <property name="connectionInitSqls">
+            <list>
+                <value>set names 'utf8mb4'</value>
+            </list>
+        </property>
+    </bean>
 
 	<!-- spring JPA -->
 	<bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
@@ -64,8 +100,8 @@
 		 -->
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
-				<property name="database" value="POSTGRESQL"/>  
-				<property name="showSql" value="false" /> 
+				<property name="database" value="MYSQL"/>
+				<property name="showSql" value="true" />
 			</bean>  
 		</property>  
 	</bean>
