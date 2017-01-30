@@ -16,5 +16,6 @@
 <jsp:invoke fragment="main"/>
 <common:js></common:js>
 <jsp:invoke fragment="js"/>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"></div>
 </body>
 </html>
