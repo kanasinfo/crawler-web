@@ -10,7 +10,7 @@
                             <h3 class="panel-title">抓取用户推文</h3>
                         </div>
                         <div class="panel-body">
-                            <form role="form" action="${ctx}/twitter" method="post">
+                            <form role="form" action="${ctx}/twitter" method="post" id="formFetchTweet">
                                 <div class="form-group">
                                     <label for="account">用户账号</label>
                                         <input type="text" class="form-control" id="account" name="account"
@@ -21,9 +21,11 @@
                                     <input type="text" class="form-control" id="twitterId" name="twitterId"
                                            value="${twitterId}" placeholder="eg: 805103901418536960">
                                 </div>
-                                <button type="submit" class="btn btn-primary">启动</button>
-                                <a href="${ctx}/view/${account}/${twitterId}" data-toggle="modal-remote" class="btn btn-default" type="button">查看结果</a>
+                                <button type="button" id="fetchTwitterBtn" class="btn btn-primary">启动</button>
                             </form>
+                        </div>
+                        <div class="panel-footer hide" id="fetchTwitterFooter" style="max-height: 150px; overflow: auto;">
+                            正在获取数据，请不要进行任何操作....
                         </div>
                     </div>
                 </div>
@@ -51,5 +53,45 @@
                 </div>
             </div>
         </div>
+    </jsp:attribute>
+    <jsp:attribute name="js">
+        <script>
+            var $fetchTwitterFooter = $('#fetchTwitterFooter');
+            var fetchCmts = function(position, twitterId) {
+                $fetchTwitterFooter.append('<div>position: ' + position + ', twitterId: ' + twitterId + '</div>');
+                $fetchTwitterFooter.scrollTop(1000000000);
+                $.post('${ctx}/twitter/comments', {
+                    minPosition: position,
+                    twitterId: twitterId
+                }, function(data) {
+                    if(data) {
+                        fetchCmts(data, twitterId);
+                    }else {
+                        $fetchTwitterFooter.append('<div>抓取结束</div>');
+                        $fetchTwitterFooter.scrollTop(1000000000)
+                        alert('抓取结束！');
+                    }
+                });
+            };
+
+            $('#fetchTwitterBtn').on('click', function () {
+                $('#fetchTwitterFooter').removeClass('hide');
+                $('#formFetchTweet').ajaxSubmit({
+                    success: function(data) {
+                        console.log('data==>' + data);
+                        if(data) {
+                            fetchCmts(data, $('#twitterId').val());
+                        }else{
+                            alert('抓取结束！');
+                            $fetchTwitterFooter.append('<div>抓取结束</div>');
+                            $fetchTwitterFooter.scrollTop(1000000000)
+                        }
+                    },
+                    error: function(data) {
+                        console.log(data);
+                    }
+                })
+            });
+        </script>
     </jsp:attribute>
 </layout:template>

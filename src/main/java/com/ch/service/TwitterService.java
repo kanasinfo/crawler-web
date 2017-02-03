@@ -1,9 +1,5 @@
 package com.ch.service;
 
-import com.ch.dao.HashTagRepository;
-import com.ch.dao.LikeRepository;
-import com.ch.dao.TweetRepository;
-import com.ch.dao.UserRepository;
 import com.ch.model.Like;
 import com.ch.model.Tweet;
 import com.ch.model.User;
@@ -18,6 +14,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +27,7 @@ import java.util.*;
  * Created by gefangshuai on 2017/1/30.
  */
 @Service
-@Transactional(readOnly = true)
+@Transactional
 public class TwitterService {
     private static final Logger logger = Logger.getLogger(FetchTwitterService.class);
     private static final Logger cmtLogger = Logger.getLogger("comment");
@@ -39,31 +36,19 @@ public class TwitterService {
     private static final String MORE_CMT_URL = "http://twitter.com/i/%s/conversation/%s?include_available_features=1&include_entities=1&max_position=%s&reset_error_state=false";
 
     @Resource
-    private HashTagRepository hashTagRepository;
+    private LikeService likeService;
     @Resource
-    private LikeRepository likeRepository;
+    private TweetService tweetService;
     @Resource
-    private TweetRepository tweetRepository;
+    private UserService userService;
     @Resource
-    private UserRepository userRepository;
-
-    public Tweet findById(String twitterId) {
-        return tweetRepository.findOne(twitterId);
-    }
-
-    public List<Tweet> findByParentId(String parentId){
-        return tweetRepository.findByParentIdAndTypeOrderByPushTimeDesc(parentId, Tweet.Type.COMMENT);
-    }
-
-    public Long countRetweetByParentId(String parentId) {
-        return tweetRepository.countByParentIdAndType(parentId, Tweet.Type.RETWEET);
-    }
+    private ApplicationContext ctx;
 
     /**
      * 获取内容正文
      */
     @Transactional
-    public void fetchMain(Element element, Tweet tweet) {
+    public Tweet fetchMain(Element element, Tweet tweet) {
         String userId = element.select("div.permalink-header>a.js-user-profile-link").attr("data-user-id");
         String twitterContent = element.select("div.permalink-tweet-container").select("div.js-tweet-text-container").text();
         String pushTime = element.select("div.permalink-tweet-container").select("div.permalink-header").select("span._timestamp.js-short-timestamp").attr("data-time-ms");
@@ -78,6 +63,8 @@ public class TwitterService {
 
         fetchReTweetUsers(tweet.getId());
         fetchLikeUsers(tweet.getId());
+
+        return tweetService.save(tweet);
     }
 
 
@@ -115,7 +102,7 @@ public class TwitterService {
                 tweet.setType(Tweet.Type.RETWEET);
                 tweet.setUser(user);
                 logger.info("获取转推: " + GsonUtils.getGson().toJson(tweet));
-                tweetRepository.save(tweet);
+                tweetService.save(tweet);
             }
         } catch (IOException e) {
             logger.info("获取转推人列表失败", e);
@@ -123,18 +110,18 @@ public class TwitterService {
         return tweetUsers;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void getMainCommentsFromElement(Element element, Tweet tweet) {
         ListIterator<Element> elements = element.select("li.ThreadedConversation,div.ThreadedConversation--loneTweet").listIterator();
-
         while (elements.hasNext()) {
+            logger.info("cmt index: " + elements.nextIndex());
             Element e = elements.next();
             getMainComment(e, tweet);
         }
     }
 
     @Transactional
-    private void getMainComment(Element e, Tweet tweet) {
+    public void getMainComment(Element e, Tweet tweet) {
         if (e.hasClass("ThreadedConversation")) {    // 带显示更多
             ListIterator<Element> userEles = e.select("div.ThreadedConversation-tweet ").listIterator();
             while (userEles.hasNext()) {
@@ -175,7 +162,7 @@ public class TwitterService {
      * 保存评论
      */
     @Transactional
-    private void saveComment(Element e, String tweetId) {
+    public void saveComment(Element e, String tweetId) {
         String id = e.select("a.account-group").attr("data-user-id");
         String account = e.select("a.account-group").attr("href").replace("/", "");
         String username = e.select("strong.fullname").text();
@@ -199,22 +186,22 @@ public class TwitterService {
         tweet.setType(Tweet.Type.COMMENT);
         tweet.setPushTime(DateFormatUtils.format(date, "yyyy-MM-dd HH:mm:ss"));
         // 获取评论喜欢
-        tweetRepository.save(tweet);
+        tweetService.save(tweet);
         cmtLogger.info("comment: " + cmt);
 
         fetchLikeUsers(cmtId);
     }
 
     @Transactional
-    public void saveUser(User user) {
-        User dbUser = userRepository.findByAccount(user.getAccount());
+    public User saveUser(User user) {
+        User dbUser = userService.findByAccount(user.getAccount());
         if (dbUser != null) {
             if (StringUtils.isNotBlank(dbUser.getUsername()))
                 user.setUsername(dbUser.getUsername());
             if (StringUtils.isNotBlank(dbUser.getUserId()))
                 user.setUserId(dbUser.getUserId());
         }
-        userRepository.save(user);
+        return userService.save(user);
     }
 
     /**
@@ -240,14 +227,14 @@ public class TwitterService {
                 user.setUserId(userId);
                 user.setAccount(account);
                 user.setUsername(username);
-                userRepository.save(user);
+                userService.save(user);
 
                 Like like = new Like();
                 like.setId(likeId);
 
                 like.setTweetId(tweetId);
                 like.setUserId(userId);
-                logger.info("获取喜欢的人: " + GsonUtils.getGson().toJson(like));
+//                logger.info("获取喜欢的人: " + GsonUtils.getGson().toJson(like));
                 saveLike(like);
             }
         } catch (Exception e) {
@@ -257,7 +244,7 @@ public class TwitterService {
     }
 
     @Transactional
-    private void saveLike(Like like) {
-        likeRepository.save(like);
+    public void saveLike(Like like) {
+        likeService.save(like);
     }
 }

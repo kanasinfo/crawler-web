@@ -98,6 +98,11 @@
 		<property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml" />
 		<property name="persistenceUnitName" value="default" />
 		 -->
+		<property name="jpaProperties">
+            <value>
+                hibernate.jdbc.batch_size= 30
+            </value>
+        </property>
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 				<property name="database" value="MYSQL"/>

@@ -19,9 +19,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.context.ApplicationContext;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -36,18 +42,18 @@ import java.util.*;
 public class FetchTwitterService {
     private static final Logger logger = Logger.getLogger(FetchTwitterService.class);
     private static final Logger cmtLogger = Logger.getLogger("comment");
-
-    private static final String domain = "http://twitter.com";
     private static final String MORE_CMT_URL = "http://twitter.com/i/%s/conversation/%s?include_available_features=1&include_entities=1&max_position=%s&reset_error_state=false";
 
-    @Resource
-    private TweetRepository tweetRepository;
+    private static final String domain = "http://twitter.com";
+
     @Resource
     private TwitterService twitterService;
+    @Resource
+    private UserService userService;
 
 
     @Transactional
-    public void fetchTwitter(String account, String tweetId) throws IOException {
+    public Tweet fetchTwitter(String account, String tweetId) throws IOException {
         String url = String.format("http://twitter.com/%s/status/%s", account, tweetId);
         User user = new User();
         user.setAccount(account);
@@ -57,23 +63,28 @@ public class FetchTwitterService {
         tweet.setUser(user);
         tweet.setType(Tweet.Type.MAIN);
 
-
+        user = twitterService.saveUser(user);
         Element element = FetchUtils.getByUrl(url).body();
-        twitterService.fetchMain(element, tweet);
+        tweet = twitterService.fetchMain(element, tweet);
+        tweet.setUser(user);
+        return tweet;
+    }
 
-        fetchComment(element, tweet);
+    @Transactional
+    public String fetchComment(String account, String tweetId, Tweet tweet) throws IOException {
+        String url = String.format("http://twitter.com/%s/status/%s", account, tweetId);
+        Element element = FetchUtils.getByUrl(url).body();
         cmtLogger.info("Comment Fetch Over!");
-        tweetRepository.save(tweet);
-        twitterService.saveUser(user);
-        logger.info("抓取完成！");
 
+        logger.info("抓取完成！");
+        return fetchComment(element, tweet);
     }
 
     /**
      * 获取列表评论
      */
     @Transactional
-    public void fetchComment(Element element, Tweet tweet) {
+    private String fetchComment(Element element, Tweet tweet) {
         String minPosition = null;
         if (element.select("div.stream-container").size() > 0) {
             Element cmtEle = element.select("div.stream-container").first();
@@ -84,21 +95,17 @@ public class FetchTwitterService {
         }
 
         twitterService.getMainCommentsFromElement(element, tweet);
-
-        if (StringUtils.isNotBlank(minPosition)) {
-            fetchFromJson(minPosition, tweet);
-        }
-
+        return minPosition;
     }
-
-
 
     /**
      * 异步请求解析json内容
      */
-    private void fetchFromJson(String minPosition, Tweet tweet) {
+    @Transactional
+    public String fetchFromJson(String minPosition, Tweet tweet) {
         try {
-            String moreUrl = String.format(MORE_CMT_URL, tweet.getUser().getAccount(), tweet.getId(), minPosition);
+            User user = userService.findById(tweet.getUserId());
+            String moreUrl = String.format(MORE_CMT_URL, user.getAccount(), tweet.getId(), minPosition);
             cmtLogger.info("more url: " + moreUrl);
 
             String moreJson = FetchUtils.httpGet(moreUrl);
@@ -108,13 +115,10 @@ public class FetchTwitterService {
             twitterService.getMainCommentsFromElement(ctEle, tweet);
 
             String nextMinPosition = map.get("min_position");
-            if (StringUtils.isNotBlank(nextMinPosition)) {
-                fetchFromJson(minPosition, tweet);
-            }
+            return nextMinPosition;
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
     }
-
-
 }
